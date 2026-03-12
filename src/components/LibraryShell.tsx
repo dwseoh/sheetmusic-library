@@ -15,7 +15,7 @@ export default function LibraryShell({
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-[100dvh] overflow-hidden">
       <Sidebar
         categories={categories}
         open={sidebarOpen}

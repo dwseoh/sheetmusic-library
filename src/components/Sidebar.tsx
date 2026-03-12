@@ -37,7 +37,7 @@ export default function Sidebar({ categories, open, onClose }: SidebarProps) {
       <aside
         className={`
           fixed lg:relative inset-y-0 left-0 z-30
-          w-56 shrink-0 flex flex-col border-r border-[#1e1c18] bg-[#0e0d0b] h-screen
+          w-56 shrink-0 flex flex-col border-r border-[#1e1c18] bg-[#0e0d0b] h-[100dvh]
           transition-transform duration-200
           ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}

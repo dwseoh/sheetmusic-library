@@ -81,7 +81,7 @@ export default function LibraryView({
   const topCategories = categories.filter((c) => !c.parent_id)
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
       <div className="border-b border-[#1e1c18] px-4 sm:px-8 py-4 sm:py-5 flex flex-wrap items-center gap-3">
         <div className="flex-1">

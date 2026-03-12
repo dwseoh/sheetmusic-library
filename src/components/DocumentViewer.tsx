@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import type { Document } from '@/types'
+const ScrollableViewer = dynamic(() => import('./ScrollableViewer'), { ssr: false })
 import {
   ArrowLeft,
   Download,
@@ -50,7 +51,7 @@ export default function DocumentViewer({ document, viewUrl }: DocumentViewerProp
         <PerformanceViewer url={viewUrl} onExit={() => setPerformanceMode(false)} />
       )}
 
-      <div className="flex h-screen">
+      <div className="flex h-[100dvh]">
         {/* Mobile overlay */}
         {sidebarOpen && (
           <div
@@ -63,7 +64,7 @@ export default function DocumentViewer({ document, viewUrl }: DocumentViewerProp
         <div
           className={`
             fixed lg:relative inset-y-0 left-0 z-30
-            w-64 shrink-0 border-r border-[#1e1c18] bg-[#0e0d0b] flex flex-col
+            w-64 h-[100dvh] shrink-0 border-r border-[#1e1c18] bg-[#0e0d0b] flex flex-col
             transition-transform duration-200
             ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
           `}
@@ -164,11 +165,7 @@ export default function DocumentViewer({ document, viewUrl }: DocumentViewerProp
           </div>
 
           {viewUrl ? (
-            <iframe
-              src={`${viewUrl}#toolbar=1&navpanes=0`}
-              className="flex-1 w-full border-0"
-              title={document.name}
-            />
+            <ScrollableViewer url={viewUrl} />
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center gap-3">
               <FileText size={40} className="text-[#2a2520]" />
