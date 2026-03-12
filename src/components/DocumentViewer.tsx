@@ -144,7 +144,7 @@ export default function DocumentViewer({ document, viewUrl }: DocumentViewerProp
         </div>
 
         {/* PDF Viewer */}
-        <div className="flex-1 bg-[#111009] flex flex-col min-w-0">
+        <div className="flex-1 bg-[#111009] flex flex-col min-w-0 relative">
           {/* Mobile top bar */}
           <div className="lg:hidden flex items-center gap-3 px-4 py-3 border-b border-[#1e1c18] bg-[#0e0d0b] shrink-0">
             <button
@@ -164,14 +164,16 @@ export default function DocumentViewer({ document, viewUrl }: DocumentViewerProp
             </button>
           </div>
 
-          {viewUrl ? (
-            <ScrollableViewer url={viewUrl} />
-          ) : (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3">
-              <FileText size={40} className="text-[#2a2520]" />
-              <p className="text-[#5a5344] text-sm font-mono">Could not load PDF</p>
-            </div>
-          )}
+          <div className="flex-1 relative min-h-0">
+            {viewUrl ? (
+              <ScrollableViewer url={viewUrl} />
+            ) : (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <FileText size={40} className="text-[#2a2520]" />
+                <p className="text-[#5a5344] text-sm font-mono">Could not load PDF</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </>
