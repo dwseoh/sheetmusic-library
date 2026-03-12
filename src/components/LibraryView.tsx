@@ -83,7 +83,7 @@ export default function LibraryView({
   return (
     <div className="flex flex-col h-screen">
       {/* Header */}
-      <div className="border-b border-[#1e1c18] px-8 py-5 flex items-center gap-4">
+      <div className="border-b border-[#1e1c18] px-4 sm:px-8 py-4 sm:py-5 flex flex-wrap items-center gap-3">
         <div className="flex-1">
           <h2 className="font-serif text-[#e8d5a3] text-2xl">
             {currentCategory ? currentCategory.name : 'All Documents'}
@@ -94,7 +94,7 @@ export default function LibraryView({
         </div>
 
         {/* Search */}
-        <div className="relative w-64">
+        <div className="relative w-full sm:w-64">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5a5344]" />
           <input
             type="text"
@@ -149,7 +149,7 @@ export default function LibraryView({
 
       {/* Filter panel */}
       {filterOpen && (
-        <div className="border-b border-[#1e1c18] px-8 py-4 flex items-center gap-6 bg-[#0e0d0b]">
+        <div className="border-b border-[#1e1c18] px-4 sm:px-8 py-4 flex flex-wrap items-center gap-4 sm:gap-6 bg-[#0e0d0b]">
           <div className="flex items-center gap-3">
             <span className="text-[#5a5344] text-[10px] font-mono tracking-widest uppercase">
               Category
@@ -201,7 +201,7 @@ export default function LibraryView({
       )}
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto px-8 py-6">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
         {view === 'folders' && (
           <FolderView
             subcategories={subcategories.length > 0 ? subcategories : topCategories}
@@ -230,7 +230,7 @@ export default function LibraryView({
 
 function GridView({ documents }: { documents: Document[] }) {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3">
       {documents.map((doc) => (
         <Link
           key={doc.id}
@@ -257,7 +257,7 @@ function GridView({ documents }: { documents: Document[] }) {
 
 function ListView({ documents }: { documents: Document[] }) {
   return (
-    <div className="border border-[#1e1c18]">
+    <div className="border border-[#1e1c18] overflow-x-auto">
       <div className="grid grid-cols-[1fr_140px_100px_80px] px-4 py-2 border-b border-[#1e1c18] bg-[#0e0d0b]">
         {['Name', 'Category', 'Date', 'Size'].map((h) => (
           <span key={h} className="text-[#3a3328] text-[9px] font-mono tracking-widest uppercase">
