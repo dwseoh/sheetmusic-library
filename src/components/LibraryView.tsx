@@ -353,7 +353,7 @@ function DocumentCard({ doc }: { doc: Document }) {
 
       {/* Hover action buttons */}
       {!renaming && !deleting && (
-        <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
+        <div className="absolute top-2 right-2 z-10 flex gap-1">
           <button
             onClick={(e) => {
               e.preventDefault()
@@ -467,7 +467,7 @@ function ListDocumentRow({ doc }: { doc: Document }) {
       <span className="text-[#5a5344] text-xs font-mono">{formatBytes(doc.file_size)}</span>
 
       {/* Action buttons */}
-      <div className="relative z-10 flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="relative z-10 flex gap-1 justify-end">
         {!renaming && !deleting && (
           <>
             <button

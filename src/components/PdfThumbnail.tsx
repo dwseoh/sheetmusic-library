@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import { FileText } from 'lucide-react'
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`
+pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
 
 export default function PdfThumbnail({ url }: { url: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
