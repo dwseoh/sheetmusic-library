@@ -75,6 +75,7 @@ export default function PerformanceViewer({ url, onExit }: PerformanceViewerProp
   return (
     <div
       className="fixed inset-0 bg-[#0c0b09] z-50 flex flex-col select-none"
+      style={{ touchAction: 'none' }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
