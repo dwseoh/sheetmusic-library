@@ -9,6 +9,49 @@ import { FileText } from 'lucide-react'
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
 
 const PADDING = 32 // px each side
+// A4 portrait ratio — used to reserve space for unrendered pages
+const PAGE_ASPECT_RATIO = 1.414
+
+function LazyPage({ pageNumber, width }: { pageNumber: number; width: number }) {
+  const [visible, setVisible] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '400px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  const placeholderHeight = width > 0 ? Math.round(width * PAGE_ASPECT_RATIO) : 200
+
+  return (
+    <div ref={ref} className="flex justify-center mb-4">
+      {visible && width > 0 ? (
+        <Page
+          pageNumber={pageNumber}
+          width={width}
+          renderTextLayer={false}
+          renderAnnotationLayer={false}
+        />
+      ) : (
+        <div
+          className="bg-[#1a1814] w-full"
+          style={{ height: placeholderHeight }}
+        />
+      )}
+    </div>
+  )
+}
 
 export default function ScrollableViewer({ url }: { url: string }) {
   const [numPages, setNumPages] = useState<number>(0)
@@ -46,14 +89,7 @@ export default function ScrollableViewer({ url }: { url: string }) {
           }
         >
           {Array.from({ length: numPages }, (_, i) => (
-            <div key={i} className="flex justify-center mb-4">
-              <Page
-                pageNumber={i + 1}
-                width={pageWidth > 0 ? pageWidth : undefined}
-                renderTextLayer={false}
-                renderAnnotationLayer={false}
-              />
-            </div>
+            <LazyPage key={i} pageNumber={i + 1} width={pageWidth} />
           ))}
         </Document>
       </div>
