@@ -5,6 +5,8 @@ import { uploadDocument } from './actions'
 import type { Category } from '@/types'
 import { Upload, FileText, X, ChevronDown, Plus, FolderPlus } from 'lucide-react'
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
+
 export default function UploadForm({ categories }: { categories: Category[] }) {
   const [file, setFile] = useState<File | null>(null)
   const [dragging, setDragging] = useState(false)
@@ -14,11 +16,21 @@ export default function UploadForm({ categories }: { categories: Category[] }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
+  const handleFileSelect = (file: File | undefined) => {
+    if (!file) return
+    if (file.size > MAX_FILE_SIZE) {
+      setError('File exceeds the 10 MB upload limit')
+      return
+    }
+    setError(null)
+    setFile(file)
+  }
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     setDragging(false)
     const dropped = e.dataTransfer.files[0]
-    if (dropped?.type === 'application/pdf') setFile(dropped)
+    if (dropped?.type === 'application/pdf') handleFileSelect(dropped)
   }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -32,6 +44,8 @@ export default function UploadForm({ categories }: { categories: Category[] }) {
       try {
         await uploadDocument(formData)
       } catch (err) {
+        // Next.js redirect() throws a special error — ignore it
+        if (err instanceof Error && (err as { digest?: string }).digest?.startsWith('NEXT_REDIRECT')) return
         setError(err instanceof Error ? err.message : 'Upload failed')
       }
     })
@@ -66,7 +80,7 @@ export default function UploadForm({ categories }: { categories: Category[] }) {
             type="file"
             accept="application/pdf"
             className="hidden"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            onChange={(e) => handleFileSelect(e.target.files?.[0])}
           />
 
           {file ? (

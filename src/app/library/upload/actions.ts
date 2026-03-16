@@ -43,7 +43,13 @@ export async function uploadDocument(formData: FormData) {
     .from('documents')
     .upload(filePath, file, { contentType: 'application/pdf', upsert: false })
 
-  if (uploadError) throw new Error('Failed to upload file')
+  if (uploadError) {
+    const msg = uploadError.message?.toLowerCase() ?? ''
+    if (msg.includes('payload too large') || msg.includes('exceeded') || msg.includes('size')) {
+      throw new Error('File exceeds the upload size limit')
+    }
+    throw new Error('Failed to upload file')
+  }
 
   // Get signed URL (valid 10 years — effectively permanent for private bucket)
   const { data: urlData } = await supabase.storage

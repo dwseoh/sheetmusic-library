@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useTransition } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import type { Document, Category } from '@/types'
+import { renameDocument, deleteDocument } from '@/app/library/actions'
 import {
   Search,
   LayoutGrid,
@@ -12,7 +14,12 @@ import {
   X,
   ChevronDown,
   SlidersHorizontal,
+  Pencil,
+  Trash2,
+  Check,
 } from 'lucide-react'
+
+const PdfThumbnail = dynamic(() => import('./PdfThumbnail'), { ssr: false })
 
 type ViewMode = 'grid' | 'list' | 'folders'
 
@@ -228,29 +235,258 @@ export default function LibraryView({
   )
 }
 
-function GridView({ documents }: { documents: Document[] }) {
+function DocumentCard({ doc }: { doc: Document }) {
+  const [isPending, startTransition] = useTransition()
+  const [renaming, setRenaming] = useState(false)
+  const [renameValue, setRenameValue] = useState(doc.name)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleRename = () => {
+    const trimmed = renameValue.trim()
+    if (!trimmed || trimmed === doc.name) {
+      setRenaming(false)
+      setRenameValue(doc.name)
+      return
+    }
+    startTransition(async () => {
+      await renameDocument(doc.id, trimmed)
+      setRenaming(false)
+    })
+  }
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      await deleteDocument(doc.id)
+    })
+  }
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3">
-      {documents.map((doc) => (
-        <Link
-          key={doc.id}
-          href={`/document/${doc.id}`}
-          className="group bg-[#111009] border border-[#1e1c18] hover:border-[#c9a84c] transition-all duration-200 p-4 flex flex-col gap-3"
-        >
-          {/* PDF icon */}
-          <div className="aspect-[3/4] bg-[#161410] flex items-center justify-center border border-[#2a2520] group-hover:border-[#3a3328] transition-colors">
-            <FileText size={28} className="text-[#3a3328] group-hover:text-[#5a5344] transition-colors" />
+    <div
+      className={`relative group bg-[#111009] border transition-all duration-200 p-4 flex flex-col gap-3 ${
+        deleting ? 'border-red-900/60' : 'border-[#1e1c18] hover:border-[#c9a84c]'
+      }`}
+    >
+      {/* Invisible link covers the card when not in rename/delete mode */}
+      {!renaming && !deleting && (
+        <Link href={`/document/${doc.id}`} className="absolute inset-0 z-0" aria-label={doc.name} />
+      )}
+
+      {/* Thumbnail */}
+      <div className="aspect-[3/4] bg-[#161410] border border-[#2a2520] overflow-hidden">
+        {doc.storage_url ? (
+          <PdfThumbnail url={doc.storage_url} />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <FileText size={28} className="text-[#3a3328]" />
           </div>
-          <div className="min-w-0">
+        )}
+      </div>
+
+      {/* Name / rename input */}
+      <div className="min-w-0 relative z-10">
+        {renaming ? (
+          <div className="flex gap-1">
+            <input
+              autoFocus
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleRename()
+                if (e.key === 'Escape') {
+                  setRenaming(false)
+                  setRenameValue(doc.name)
+                }
+              }}
+              className="flex-1 min-w-0 bg-[#161410] border border-[#c9a84c] text-[#e8d5a3] text-xs font-mono px-2 py-1 focus:outline-none"
+            />
+            <button
+              onClick={handleRename}
+              disabled={isPending}
+              className="text-[#c9a84c] hover:text-[#e8d5a3] shrink-0 transition-colors"
+              title="Save"
+            >
+              <Check size={12} />
+            </button>
+            <button
+              onClick={() => {
+                setRenaming(false)
+                setRenameValue(doc.name)
+              }}
+              className="text-[#5a5344] hover:text-[#e8d5a3] shrink-0 transition-colors"
+              title="Cancel"
+            >
+              <X size={12} />
+            </button>
+          </div>
+        ) : deleting ? (
+          <div className="space-y-1.5">
+            <p className="text-[#c0392b] text-[10px] font-mono leading-relaxed">
+              Delete &ldquo;{doc.name}&rdquo;?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDelete}
+                disabled={isPending}
+                className="text-[#c0392b] text-[10px] font-mono hover:text-red-300 transition-colors disabled:opacity-50"
+              >
+                {isPending ? 'Deleting...' : 'Delete'}
+              </button>
+              <button
+                onClick={() => setDeleting(false)}
+                className="text-[#5a5344] text-[10px] font-mono hover:text-[#e8d5a3] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
             <p className="text-[#e8d5a3] text-xs font-mono truncate leading-relaxed">
               {doc.name}
             </p>
             <p className="text-[#3a3328] text-[10px] font-mono mt-0.5">
               {formatDate(doc.created_at)}
             </p>
-          </div>
-        </Link>
+          </>
+        )}
+      </div>
+
+      {/* Hover action buttons */}
+      {!renaming && !deleting && (
+        <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 flex gap-1 transition-opacity">
+          <button
+            onClick={(e) => {
+              e.preventDefault()
+              setRenaming(true)
+            }}
+            className="p-1.5 bg-[#1e1c18] border border-[#2a2520] text-[#8a7d6a] hover:text-[#c9a84c] hover:border-[#c9a84c] transition-colors"
+            title="Rename"
+          >
+            <Pencil size={10} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.preventDefault()
+              setDeleting(true)
+            }}
+            className="p-1.5 bg-[#1e1c18] border border-[#2a2520] text-[#8a7d6a] hover:text-[#c0392b] hover:border-red-900/60 transition-colors"
+            title="Delete"
+          >
+            <Trash2 size={10} />
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function GridView({ documents }: { documents: Document[] }) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-3">
+      {documents.map((doc) => (
+        <DocumentCard key={doc.id} doc={doc} />
       ))}
+    </div>
+  )
+}
+
+function ListDocumentRow({ doc }: { doc: Document }) {
+  const [isPending, startTransition] = useTransition()
+  const [renaming, setRenaming] = useState(false)
+  const [renameValue, setRenameValue] = useState(doc.name)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleRename = () => {
+    const trimmed = renameValue.trim()
+    if (!trimmed || trimmed === doc.name) {
+      setRenaming(false)
+      setRenameValue(doc.name)
+      return
+    }
+    startTransition(async () => {
+      await renameDocument(doc.id, trimmed)
+      setRenaming(false)
+    })
+  }
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      await deleteDocument(doc.id)
+    })
+  }
+
+  return (
+    <div
+      className={`relative grid grid-cols-[1fr_140px_100px_80px_64px] px-4 py-3 items-center hover:bg-[#111009] transition-colors border-b border-[#1a1814] last:border-0 group`}
+    >
+      {!renaming && !deleting && (
+        <Link href={`/document/${doc.id}`} className="absolute inset-0 z-0" aria-label={doc.name} />
+      )}
+
+      <div className="flex items-center gap-3 min-w-0 relative z-10">
+        <FileText size={13} className="text-[#3a3328] group-hover:text-[#c9a84c] shrink-0 transition-colors" />
+        {renaming ? (
+          <div className="flex gap-1 flex-1 min-w-0">
+            <input
+              autoFocus
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleRename()
+                if (e.key === 'Escape') {
+                  setRenaming(false)
+                  setRenameValue(doc.name)
+                }
+              }}
+              className="flex-1 min-w-0 bg-[#161410] border border-[#c9a84c] text-[#e8d5a3] text-xs font-mono px-2 py-0.5 focus:outline-none"
+            />
+            <button onClick={handleRename} disabled={isPending} className="text-[#c9a84c] hover:text-[#e8d5a3] shrink-0">
+              <Check size={11} />
+            </button>
+            <button onClick={() => { setRenaming(false); setRenameValue(doc.name) }} className="text-[#5a5344] hover:text-[#e8d5a3] shrink-0">
+              <X size={11} />
+            </button>
+          </div>
+        ) : deleting ? (
+          <div className="flex items-center gap-3 min-w-0">
+            <span className="text-[#c0392b] text-xs font-mono">Delete?</span>
+            <button onClick={handleDelete} disabled={isPending} className="text-[#c0392b] text-xs font-mono hover:text-red-300 disabled:opacity-50">
+              {isPending ? '...' : 'Yes'}
+            </button>
+            <button onClick={() => setDeleting(false)} className="text-[#5a5344] text-xs font-mono hover:text-[#e8d5a3]">No</button>
+          </div>
+        ) : (
+          <span className="text-[#e8d5a3] text-xs font-mono truncate group-hover:text-[#c9a84c] transition-colors">
+            {doc.name}
+          </span>
+        )}
+      </div>
+
+      <span className="text-[#5a5344] text-xs font-mono truncate">{doc.category?.name ?? '—'}</span>
+      <span className="text-[#5a5344] text-xs font-mono">{formatDate(doc.created_at)}</span>
+      <span className="text-[#5a5344] text-xs font-mono">{formatBytes(doc.file_size)}</span>
+
+      {/* Action buttons */}
+      <div className="relative z-10 flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+        {!renaming && !deleting && (
+          <>
+            <button
+              onClick={(e) => { e.preventDefault(); setRenaming(true) }}
+              className="p-1 text-[#5a5344] hover:text-[#c9a84c] transition-colors"
+              title="Rename"
+            >
+              <Pencil size={11} />
+            </button>
+            <button
+              onClick={(e) => { e.preventDefault(); setDeleting(true) }}
+              className="p-1 text-[#5a5344] hover:text-[#c0392b] transition-colors"
+              title="Delete"
+            >
+              <Trash2 size={11} />
+            </button>
+          </>
+        )}
+      </div>
     </div>
   )
 }
@@ -258,33 +494,15 @@ function GridView({ documents }: { documents: Document[] }) {
 function ListView({ documents }: { documents: Document[] }) {
   return (
     <div className="border border-[#1e1c18] overflow-x-auto">
-      <div className="grid grid-cols-[1fr_140px_100px_80px] px-4 py-2 border-b border-[#1e1c18] bg-[#0e0d0b]">
-        {['Name', 'Category', 'Date', 'Size'].map((h) => (
-          <span key={h} className="text-[#3a3328] text-[9px] font-mono tracking-widest uppercase">
+      <div className="grid grid-cols-[1fr_140px_100px_80px_64px] px-4 py-2 border-b border-[#1e1c18] bg-[#0e0d0b]">
+        {['Name', 'Category', 'Date', 'Size', ''].map((h, i) => (
+          <span key={i} className="text-[#3a3328] text-[9px] font-mono tracking-widest uppercase">
             {h}
           </span>
         ))}
       </div>
-      {documents.map((doc, i) => (
-        <Link
-          key={doc.id}
-          href={`/document/${doc.id}`}
-          className={`grid grid-cols-[1fr_140px_100px_80px] px-4 py-3 items-center hover:bg-[#111009] transition-colors border-b border-[#1a1814] last:border-0 group ${
-            i % 2 === 0 ? '' : 'bg-[#0e0d0b]'
-          }`}
-        >
-          <div className="flex items-center gap-3 min-w-0">
-            <FileText size={13} className="text-[#3a3328] group-hover:text-[#c9a84c] shrink-0 transition-colors" />
-            <span className="text-[#e8d5a3] text-xs font-mono truncate group-hover:text-[#c9a84c] transition-colors">
-              {doc.name}
-            </span>
-          </div>
-          <span className="text-[#5a5344] text-xs font-mono truncate">
-            {doc.category?.name ?? '—'}
-          </span>
-          <span className="text-[#5a5344] text-xs font-mono">{formatDate(doc.created_at)}</span>
-          <span className="text-[#5a5344] text-xs font-mono">{formatBytes(doc.file_size)}</span>
-        </Link>
+      {documents.map((doc) => (
+        <ListDocumentRow key={doc.id} doc={doc} />
       ))}
     </div>
   )
