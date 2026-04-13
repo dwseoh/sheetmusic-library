@@ -268,7 +268,7 @@ function DocumentCard({ doc }: { doc: Document }) {
     >
       {/* Invisible link covers the card when not in rename/delete mode */}
       {!renaming && !deleting && (
-        <Link href={`/document/${doc.id}`} className="absolute inset-0 z-0" aria-label={doc.name} />
+        <Link href={`/document/${doc.id}`} className="absolute inset-0 z-10" aria-label={doc.name} />
       )}
 
       {/* Thumbnail */}
@@ -353,7 +353,7 @@ function DocumentCard({ doc }: { doc: Document }) {
 
       {/* Hover action buttons */}
       {!renaming && !deleting && (
-        <div className="absolute top-2 right-2 z-10 flex gap-1">
+        <div className="absolute top-2 right-2 z-20 flex gap-1">
           <button
             onClick={(e) => {
               e.preventDefault()
@@ -420,10 +420,10 @@ function ListDocumentRow({ doc }: { doc: Document }) {
       className={`relative grid grid-cols-[1fr_140px_100px_80px_64px] px-4 py-3 items-center hover:bg-[#111009] transition-colors border-b border-[#1a1814] last:border-0 group`}
     >
       {!renaming && !deleting && (
-        <Link href={`/document/${doc.id}`} className="absolute inset-0 z-0" aria-label={doc.name} />
+        <Link href={`/document/${doc.id}`} className="absolute inset-0 z-10" aria-label={doc.name} />
       )}
 
-      <div className="flex items-center gap-3 min-w-0 relative z-10">
+      <div className="flex items-center gap-3 min-w-0 relative z-20">
         <FileText size={13} className="text-[#3a3328] group-hover:text-[#c9a84c] shrink-0 transition-colors" />
         {renaming ? (
           <div className="flex gap-1 flex-1 min-w-0">
@@ -467,7 +467,7 @@ function ListDocumentRow({ doc }: { doc: Document }) {
       <span className="text-[#5a5344] text-xs font-mono">{formatBytes(doc.file_size)}</span>
 
       {/* Action buttons */}
-      <div className="relative z-10 flex gap-1 justify-end">
+      <div className="relative z-20 flex gap-1 justify-end">
         {!renaming && !deleting && (
           <>
             <button

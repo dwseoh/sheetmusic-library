@@ -34,7 +34,7 @@ export default function LibraryShell({
           <span className="font-serif text-[#e8d5a3] text-lg">Archive</span>
         </div>
 
-        <div className="flex-1 min-w-0">{children}</div>
+        <div className="flex-1 min-w-0 min-h-0 overflow-hidden">{children}</div>
       </div>
     </div>
   )
