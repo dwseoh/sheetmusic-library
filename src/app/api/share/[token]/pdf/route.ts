@@ -31,8 +31,8 @@ export async function GET(
   }
 
   // Fetch from Supabase server-to-server and stream the body directly to the client.
-  // This avoids buffering the whole file in memory and works for any file size.
-  const upstream = await fetch(signed.signedUrl)
+  // cache: 'no-store' opts out of Next.js's extended fetch caching.
+  const upstream = await fetch(signed.signedUrl, { cache: 'no-store' })
 
   if (!upstream.ok) {
     console.error('[share/pdf] upstream fetch failed:', upstream.status, upstream.statusText)
