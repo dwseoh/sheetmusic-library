@@ -31,7 +31,12 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Allow login page through
+  // Public routes — no auth required
+  if (pathname.startsWith('/share') || pathname.startsWith('/auth')) {
+    return supabaseResponse
+  }
+
+  // Redirect logged-in users away from login page
   if (pathname.startsWith('/login')) {
     if (user) {
       return NextResponse.redirect(new URL('/library', request.url))
@@ -39,7 +44,7 @@ export async function proxy(request: NextRequest) {
     return supabaseResponse
   }
 
-  // Protect all other routes
+  // Everything else requires auth
   if (!user) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
