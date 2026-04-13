@@ -29,6 +29,3 @@ npm install
 npm run dev
 ```
 
-## Deployment
-
-Push to GitHub, import in [Vercel](https://vercel.com), add the two env vars, and point your DNS with a CNAME to `cname.vercel-dns.com`. Also add your production URL to Supabase → Authentication → URL Configuration.
