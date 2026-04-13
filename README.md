@@ -4,7 +4,7 @@ A private document library for storing, browsing, and performing from PDFs.
 
 ## Stack
 
-- Next.js 14 (App Router) · TypeScript · Tailwind CSS
+- Next.js, TypeScript, Tailwind CSS
 - Supabase — auth, storage, PostgreSQL
 
 ## Features
@@ -15,6 +15,7 @@ A private document library for storing, browsing, and performing from PDFs.
 - Search and filter
 - Inline PDF viewer (all pages, scrollable)
 - Performance mode — full-screen, page-by-page with swipe gestures (iPad/mobile) and arrow keys
+- Creating publically accessible PDF links
 
 ## Setup
 
