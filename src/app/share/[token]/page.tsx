@@ -28,8 +28,11 @@ export default async function SharePage({
     .eq('id', document.uploaded_by)
     .single()
 
-  // Use proxy route — no signed URL exposed to client
-  const viewUrl = `/api/share/${token}/pdf`
+  const { data: signedData } = await admin.storage
+    .from('documents')
+    .createSignedUrl(document.file_path, 60 * 60)
+
+  const viewUrl = signedData?.signedUrl ?? null
 
   return (
     <SharedViewer
