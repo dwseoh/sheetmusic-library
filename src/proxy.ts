@@ -32,7 +32,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Public routes — no auth required
-  if (pathname.startsWith('/share') || pathname.startsWith('/auth')) {
+  if (pathname.startsWith('/share') || pathname.startsWith('/api/share') || pathname.startsWith('/auth')) {
     return supabaseResponse
   }
 
