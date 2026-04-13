@@ -12,13 +12,15 @@ export default async function DocumentPage({
   const { id } = await params
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+
   const { data: doc } = await supabase
     .from('documents')
     .select('*, category:categories(id, name)')
     .eq('id', id)
     .single()
 
-  if (!doc) notFound()
+  if (!doc || doc.uploaded_by !== user?.id) notFound()
 
   const document = doc as Document
 
