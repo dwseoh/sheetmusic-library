@@ -28,11 +28,9 @@ export default async function SharePage({
     .eq('id', document.uploaded_by)
     .single()
 
-  const { data: signedData } = await admin.storage
-    .from('documents')
-    .createSignedUrl(document.file_path, 60 * 60)
-
-  const viewUrl = signedData?.signedUrl ?? null
+  // The PDF is served through a same-origin proxy route so react-pdf has no CORS
+  // issues fetching it, and the document's is_public flag is checked on every request.
+  const viewUrl = `/api/share/${token}/pdf`
 
   return (
     <SharedViewer

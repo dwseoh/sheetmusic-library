@@ -8,32 +8,42 @@ export async function GET(
   const { token } = await params
   const admin = createAdminClient()
 
-  const { data: doc } = await admin
+  // Validate that the document is public and the token matches
+  const { data: doc, error: dbError } = await admin
     .from('documents')
     .select('file_path')
     .eq('share_token', token)
     .eq('is_public', true)
     .single()
 
-  if (!doc) {
+  if (dbError || !doc) {
     return new NextResponse('Not found', { status: 404 })
   }
 
-  const { data, error } = await admin.storage
+  // Generate a short-lived signed URL for server-to-server fetch
+  const { data: signed, error: storageError } = await admin.storage
     .from('documents')
-    .download(doc.file_path)
+    .createSignedUrl(doc.file_path, 60) // 60 seconds is enough for a server fetch
 
-  if (error || !data) {
-    return new NextResponse('Could not fetch PDF', { status: 500 })
+  if (storageError || !signed?.signedUrl) {
+    console.error('[share/pdf] createSignedUrl failed:', storageError, 'path:', doc.file_path)
+    return new NextResponse('Storage error', { status: 500 })
   }
 
-  const buffer = await data.arrayBuffer()
+  // Fetch from Supabase server-to-server and stream the body directly to the client.
+  // This avoids buffering the whole file in memory and works for any file size.
+  const upstream = await fetch(signed.signedUrl)
 
-  return new NextResponse(buffer, {
+  if (!upstream.ok) {
+    console.error('[share/pdf] upstream fetch failed:', upstream.status, upstream.statusText)
+    return new NextResponse('Could not fetch PDF', { status: 502 })
+  }
+
+  return new Response(upstream.body, {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': 'inline',
-      'Cache-Control': 'private, max-age=3600',
+      'Cache-Control': 'private, max-age=300',
     },
   })
 }

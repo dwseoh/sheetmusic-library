@@ -76,7 +76,7 @@ export default function SharedViewer({ document, viewUrl, sharedBy }: SharedView
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
               <FileText size={40} className="text-[var(--border)]" />
-              <p className="text-[var(--text-muted)] text-sm font-mono">Could not load PDF</p>
+              <p className="text-[var(--text-muted)] text-sm font-mono">PDF unavailable</p>
             </div>
           )}
         </div>
