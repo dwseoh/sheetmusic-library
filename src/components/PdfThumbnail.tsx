@@ -36,7 +36,7 @@ export default function PdfThumbnail({ url }: { url: string }) {
         </Document>
       ) : (
         <div className="w-full h-full flex items-center justify-center">
-          <FileText size={24} className="text-[#3a3328]" />
+          <FileText size={24} className="text-[var(--text-dim)]" />
         </div>
       )}
     </div>

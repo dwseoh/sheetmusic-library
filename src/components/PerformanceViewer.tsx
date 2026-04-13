@@ -74,28 +74,28 @@ export default function PerformanceViewer({ url, onExit }: PerformanceViewerProp
 
   return (
     <div
-      className="fixed inset-0 bg-[#0c0b09] z-50 flex flex-col select-none"
+      className="fixed inset-0 bg-[var(--bg-deep)] z-50 flex flex-col select-none"
       style={{ touchAction: 'none' }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[#1e1c18] shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-strong)] shrink-0">
         <div className="flex items-center gap-3">
-          <button onClick={goPrev} disabled={currentPage <= 1} className="p-2 text-[#8a7d6a] hover:text-[#e8d5a3] disabled:text-[#2a2520] transition-colors">
+          <button onClick={goPrev} disabled={currentPage <= 1} className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:text-[var(--border)] transition-colors">
             <ChevronLeft size={18} />
           </button>
-          <span className="text-[#5a5344] text-xs font-mono tabular-nums">{currentPage} / {numPages}</span>
-          <button onClick={goNext} disabled={currentPage >= numPages} className="p-2 text-[#8a7d6a] hover:text-[#e8d5a3] disabled:text-[#2a2520] transition-colors">
+          <span className="text-[var(--text-muted)] text-xs font-mono tabular-nums">{currentPage} / {numPages}</span>
+          <button onClick={goNext} disabled={currentPage >= numPages} className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:text-[var(--border)] transition-colors">
             <ChevronRight size={18} />
           </button>
         </div>
 
-        <span className="text-[#3a3328] text-[10px] font-mono tracking-widest uppercase hidden sm:block">
+        <span className="text-[var(--text-dim)] text-[10px] font-mono tracking-widest uppercase hidden sm:block">
           Performance Mode
         </span>
 
-        <button onClick={onExit} className="p-2 text-[#5a5344] hover:text-[#e8d5a3] transition-colors">
+        <button onClick={onExit} className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
           <X size={16} />
         </button>
       </div>
@@ -105,7 +105,7 @@ export default function PerformanceViewer({ url, onExit }: PerformanceViewerProp
         <Document
           file={url}
           onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-          loading={<span className="text-[#3a3328] text-xs font-mono animate-pulse">Loading...</span>}
+          loading={<span className="text-[var(--text-dim)] text-xs font-mono animate-pulse">Loading...</span>}
         >
           <Page
             pageNumber={currentPage}
@@ -123,7 +123,7 @@ export default function PerformanceViewer({ url, onExit }: PerformanceViewerProp
             <button
               key={i}
               onClick={() => setCurrentPage(i + 1)}
-              className={`w-1.5 h-1.5 rounded-full transition-colors ${i + 1 === currentPage ? 'bg-[#c9a84c]' : 'bg-[#2a2520]'}`}
+              className={`w-1.5 h-1.5 rounded-full transition-colors ${i + 1 === currentPage ? 'bg-[var(--accent)]' : 'bg-[var(--border)]'}`}
             />
           ))}
         </div>

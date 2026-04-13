@@ -90,30 +90,30 @@ export default function LibraryView({
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="border-b border-[#1e1c18] px-4 sm:px-8 py-4 sm:py-5 flex flex-wrap items-center gap-3">
+      <div className="border-b border-[var(--border-strong)] px-4 sm:px-8 py-4 sm:py-5 flex flex-wrap items-center gap-3">
         <div className="flex-1">
-          <h2 className="font-serif text-[#e8d5a3] text-2xl">
+          <h2 className="font-serif text-[var(--text-primary)] text-2xl">
             {currentCategory ? currentCategory.name : 'All Documents'}
           </h2>
-          <p className="text-[#5a5344] text-xs font-mono mt-0.5">
+          <p className="text-[var(--text-muted)] text-xs font-mono mt-0.5">
             {filtered.length} document{filtered.length !== 1 ? 's' : ''}
           </p>
         </div>
 
         {/* Search */}
         <div className="relative w-full sm:w-64">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5a5344]" />
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search documents..."
-            className="w-full bg-[#111009] border border-[#2a2520] text-[#e8d5a3] text-xs font-mono pl-8 pr-8 py-2 focus:outline-none focus:border-[#c9a84c] transition-colors placeholder-[#3a3328]"
+            className="w-full bg-[var(--bg-surface)] border border-[var(--border)] text-[var(--text-primary)] text-xs font-mono pl-8 pr-8 py-2 focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-dim)]"
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5a5344] hover:text-[#8a7d6a]"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
             >
               <X size={11} />
             </button>
@@ -125,8 +125,8 @@ export default function LibraryView({
           onClick={() => setFilterOpen((v) => !v)}
           className={`flex items-center gap-1.5 px-3 py-2 text-xs font-mono border transition-colors ${
             filterOpen || filterCategory
-              ? 'border-[#c9a84c] text-[#c9a84c]'
-              : 'border-[#2a2520] text-[#8a7d6a] hover:border-[#3a3328] hover:text-[#e8d5a3]'
+              ? 'border-[var(--accent)] text-[var(--accent)]'
+              : 'border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--text-dim)] hover:text-[var(--text-primary)]'
           }`}
         >
           <SlidersHorizontal size={12} />
@@ -134,15 +134,15 @@ export default function LibraryView({
         </button>
 
         {/* View toggle */}
-        <div className="flex border border-[#2a2520]">
+        <div className="flex border border-[var(--border)]">
           {(['grid', 'list', 'folders'] as ViewMode[]).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
               className={`px-3 py-2 transition-colors ${
                 view === v
-                  ? 'bg-[#1e1c18] text-[#c9a84c]'
-                  : 'text-[#5a5344] hover:text-[#8a7d6a]'
+                  ? 'bg-[var(--border-strong)] text-[var(--accent)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
               title={v.charAt(0).toUpperCase() + v.slice(1)}
             >
@@ -156,16 +156,16 @@ export default function LibraryView({
 
       {/* Filter panel */}
       {filterOpen && (
-        <div className="border-b border-[#1e1c18] px-4 sm:px-8 py-4 flex flex-wrap items-center gap-4 sm:gap-6 bg-[#0e0d0b]">
+        <div className="border-b border-[var(--border-strong)] px-4 sm:px-8 py-4 flex flex-wrap items-center gap-4 sm:gap-6 bg-[var(--bg-base)]">
           <div className="flex items-center gap-3">
-            <span className="text-[#5a5344] text-[10px] font-mono tracking-widest uppercase">
+            <span className="text-[var(--text-muted)] text-[10px] font-mono tracking-widest uppercase">
               Category
             </span>
             <div className="relative">
               <select
                 value={filterCategory}
                 onChange={(e) => setFilterCategory(e.target.value)}
-                className="appearance-none bg-[#161410] border border-[#2a2520] text-[#8a7d6a] text-xs font-mono px-3 py-1.5 pr-7 focus:outline-none focus:border-[#c9a84c] cursor-pointer"
+                className="appearance-none bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-secondary)] text-xs font-mono px-3 py-1.5 pr-7 focus:outline-none focus:border-[var(--accent)] cursor-pointer"
               >
                 <option value="">All</option>
                 {topCategories.map((c) => (
@@ -174,32 +174,32 @@ export default function LibraryView({
                   </option>
                 ))}
               </select>
-              <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5a5344] pointer-events-none" />
+              <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-[#5a5344] text-[10px] font-mono tracking-widest uppercase">
+            <span className="text-[var(--text-muted)] text-[10px] font-mono tracking-widest uppercase">
               Sort
             </span>
             <div className="relative">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="appearance-none bg-[#161410] border border-[#2a2520] text-[#8a7d6a] text-xs font-mono px-3 py-1.5 pr-7 focus:outline-none focus:border-[#c9a84c] cursor-pointer"
+                className="appearance-none bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-secondary)] text-xs font-mono px-3 py-1.5 pr-7 focus:outline-none focus:border-[var(--accent)] cursor-pointer"
               >
                 <option value="date">Date Added</option>
                 <option value="name">Name</option>
                 <option value="size">File Size</option>
               </select>
-              <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-[#5a5344] pointer-events-none" />
+              <ChevronDown size={10} className="absolute right-2 top-1/2 -translate-y-1/2 text-[var(--text-muted)] pointer-events-none" />
             </div>
           </div>
 
           {filterCategory && (
             <button
               onClick={() => setFilterCategory('')}
-              className="flex items-center gap-1 text-[#c9a84c] text-xs font-mono hover:text-[#e8d5a3] ml-auto"
+              className="flex items-center gap-1 text-[var(--accent)] text-xs font-mono hover:text-[var(--text-primary)] ml-auto"
             >
               <X size={10} /> Clear filters
             </button>
@@ -221,10 +221,10 @@ export default function LibraryView({
 
         {filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-24 text-center">
-            <FileText size={32} className="text-[#2a2520] mb-4" />
-            <p className="text-[#5a5344] text-sm font-mono">No documents found</p>
+            <FileText size={32} className="text-[var(--border)] mb-4" />
+            <p className="text-[var(--text-muted)] text-sm font-mono">No documents found</p>
             {search && (
-              <p className="text-[#3a3328] text-xs font-mono mt-1">
+              <p className="text-[var(--text-dim)] text-xs font-mono mt-1">
                 Try a different search term
               </p>
             )}
@@ -262,8 +262,8 @@ function DocumentCard({ doc }: { doc: Document }) {
 
   return (
     <div
-      className={`relative group bg-[#111009] border transition-all duration-200 p-4 flex flex-col gap-3 ${
-        deleting ? 'border-red-900/60' : 'border-[#1e1c18] hover:border-[#c9a84c]'
+      className={`relative group bg-[var(--bg-surface)] border transition-all duration-200 p-4 flex flex-col gap-3 ${
+        deleting ? 'border-red-900/60' : 'border-[var(--border-strong)] hover:border-[var(--accent)]'
       }`}
     >
       {/* Invisible link covers the card when not in rename/delete mode */}
@@ -272,18 +272,18 @@ function DocumentCard({ doc }: { doc: Document }) {
       )}
 
       {/* Thumbnail */}
-      <div className="aspect-[3/4] bg-[#161410] border border-[#2a2520] overflow-hidden">
+      <div className="aspect-[3/4] bg-[var(--bg-elevated)] border border-[var(--border)] overflow-hidden">
         {doc.storage_url ? (
           <PdfThumbnail url={doc.storage_url} />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <FileText size={28} className="text-[#3a3328]" />
+            <FileText size={28} className="text-[var(--text-dim)]" />
           </div>
         )}
       </div>
 
       {/* Name / rename input */}
-      <div className="min-w-0 relative z-10">
+      <div className={`min-w-0 ${renaming || deleting ? 'relative z-10' : 'pointer-events-none'}`}>
         {renaming ? (
           <div className="flex gap-1">
             <input
@@ -297,12 +297,12 @@ function DocumentCard({ doc }: { doc: Document }) {
                   setRenameValue(doc.name)
                 }
               }}
-              className="flex-1 min-w-0 bg-[#161410] border border-[#c9a84c] text-[#e8d5a3] text-xs font-mono px-2 py-1 focus:outline-none"
+              className="flex-1 min-w-0 bg-[var(--bg-elevated)] border border-[var(--accent)] text-[var(--text-primary)] text-xs font-mono px-2 py-1 focus:outline-none"
             />
             <button
               onClick={handleRename}
               disabled={isPending}
-              className="text-[#c9a84c] hover:text-[#e8d5a3] shrink-0 transition-colors"
+              className="text-[var(--accent)] hover:text-[var(--text-primary)] shrink-0 transition-colors"
               title="Save"
             >
               <Check size={12} />
@@ -312,7 +312,7 @@ function DocumentCard({ doc }: { doc: Document }) {
                 setRenaming(false)
                 setRenameValue(doc.name)
               }}
-              className="text-[#5a5344] hover:text-[#e8d5a3] shrink-0 transition-colors"
+              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0 transition-colors"
               title="Cancel"
             >
               <X size={12} />
@@ -320,20 +320,20 @@ function DocumentCard({ doc }: { doc: Document }) {
           </div>
         ) : deleting ? (
           <div className="space-y-1.5">
-            <p className="text-[#c0392b] text-[10px] font-mono leading-relaxed">
+            <p className="text-[var(--danger)] text-[10px] font-mono leading-relaxed">
               Delete &ldquo;{doc.name}&rdquo;?
             </p>
             <div className="flex gap-3">
               <button
                 onClick={handleDelete}
                 disabled={isPending}
-                className="text-[#c0392b] text-[10px] font-mono hover:text-red-300 transition-colors disabled:opacity-50"
+                className="text-[var(--danger)] text-[10px] font-mono hover:text-red-300 transition-colors disabled:opacity-50"
               >
                 {isPending ? 'Deleting...' : 'Delete'}
               </button>
               <button
                 onClick={() => setDeleting(false)}
-                className="text-[#5a5344] text-[10px] font-mono hover:text-[#e8d5a3] transition-colors"
+                className="text-[var(--text-muted)] text-[10px] font-mono hover:text-[var(--text-primary)] transition-colors"
               >
                 Cancel
               </button>
@@ -341,10 +341,10 @@ function DocumentCard({ doc }: { doc: Document }) {
           </div>
         ) : (
           <>
-            <p className="text-[#e8d5a3] text-xs font-mono truncate leading-relaxed">
+            <p className="text-[var(--text-primary)] text-xs font-mono truncate leading-relaxed">
               {doc.name}
             </p>
-            <p className="text-[#3a3328] text-[10px] font-mono mt-0.5">
+            <p className="text-[var(--text-dim)] text-[10px] font-mono mt-0.5">
               {formatDate(doc.created_at)}
             </p>
           </>
@@ -359,7 +359,7 @@ function DocumentCard({ doc }: { doc: Document }) {
               e.preventDefault()
               setRenaming(true)
             }}
-            className="p-1.5 bg-[#1e1c18] border border-[#2a2520] text-[#8a7d6a] hover:text-[#c9a84c] hover:border-[#c9a84c] transition-colors"
+            className="p-1.5 bg-[var(--border-strong)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--accent)] hover:border-[var(--accent)] transition-colors"
             title="Rename"
           >
             <Pencil size={10} />
@@ -369,7 +369,7 @@ function DocumentCard({ doc }: { doc: Document }) {
               e.preventDefault()
               setDeleting(true)
             }}
-            className="p-1.5 bg-[#1e1c18] border border-[#2a2520] text-[#8a7d6a] hover:text-[#c0392b] hover:border-red-900/60 transition-colors"
+            className="p-1.5 bg-[var(--border-strong)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--danger)] hover:border-red-900/60 transition-colors"
             title="Delete"
           >
             <Trash2 size={10} />
@@ -417,14 +417,14 @@ function ListDocumentRow({ doc }: { doc: Document }) {
 
   return (
     <div
-      className={`relative grid grid-cols-[1fr_140px_100px_80px_64px] px-4 py-3 items-center hover:bg-[#111009] transition-colors border-b border-[#1a1814] last:border-0 group`}
+      className={`relative grid grid-cols-[1fr_140px_100px_80px_64px] px-4 py-3 items-center hover:bg-[var(--bg-surface)] transition-colors border-b border-[var(--border-subtle)] last:border-0 group`}
     >
       {!renaming && !deleting && (
         <Link href={`/document/${doc.id}`} className="absolute inset-0 z-10" aria-label={doc.name} />
       )}
 
       <div className="flex items-center gap-3 min-w-0 relative z-20">
-        <FileText size={13} className="text-[#3a3328] group-hover:text-[#c9a84c] shrink-0 transition-colors" />
+        <FileText size={13} className="text-[var(--text-dim)] group-hover:text-[var(--accent)] shrink-0 transition-colors" />
         {renaming ? (
           <div className="flex gap-1 flex-1 min-w-0">
             <input
@@ -438,33 +438,33 @@ function ListDocumentRow({ doc }: { doc: Document }) {
                   setRenameValue(doc.name)
                 }
               }}
-              className="flex-1 min-w-0 bg-[#161410] border border-[#c9a84c] text-[#e8d5a3] text-xs font-mono px-2 py-0.5 focus:outline-none"
+              className="flex-1 min-w-0 bg-[var(--bg-elevated)] border border-[var(--accent)] text-[var(--text-primary)] text-xs font-mono px-2 py-0.5 focus:outline-none"
             />
-            <button onClick={handleRename} disabled={isPending} className="text-[#c9a84c] hover:text-[#e8d5a3] shrink-0">
+            <button onClick={handleRename} disabled={isPending} className="text-[var(--accent)] hover:text-[var(--text-primary)] shrink-0">
               <Check size={11} />
             </button>
-            <button onClick={() => { setRenaming(false); setRenameValue(doc.name) }} className="text-[#5a5344] hover:text-[#e8d5a3] shrink-0">
+            <button onClick={() => { setRenaming(false); setRenameValue(doc.name) }} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] shrink-0">
               <X size={11} />
             </button>
           </div>
         ) : deleting ? (
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-[#c0392b] text-xs font-mono">Delete?</span>
-            <button onClick={handleDelete} disabled={isPending} className="text-[#c0392b] text-xs font-mono hover:text-red-300 disabled:opacity-50">
+            <span className="text-[var(--danger)] text-xs font-mono">Delete?</span>
+            <button onClick={handleDelete} disabled={isPending} className="text-[var(--danger)] text-xs font-mono hover:text-red-300 disabled:opacity-50">
               {isPending ? '...' : 'Yes'}
             </button>
-            <button onClick={() => setDeleting(false)} className="text-[#5a5344] text-xs font-mono hover:text-[#e8d5a3]">No</button>
+            <button onClick={() => setDeleting(false)} className="text-[var(--text-muted)] text-xs font-mono hover:text-[var(--text-primary)]">No</button>
           </div>
         ) : (
-          <span className="text-[#e8d5a3] text-xs font-mono truncate group-hover:text-[#c9a84c] transition-colors">
+          <span className="text-[var(--text-primary)] text-xs font-mono truncate group-hover:text-[var(--accent)] transition-colors">
             {doc.name}
           </span>
         )}
       </div>
 
-      <span className="text-[#5a5344] text-xs font-mono truncate">{doc.category?.name ?? '—'}</span>
-      <span className="text-[#5a5344] text-xs font-mono">{formatDate(doc.created_at)}</span>
-      <span className="text-[#5a5344] text-xs font-mono">{formatBytes(doc.file_size)}</span>
+      <span className="text-[var(--text-muted)] text-xs font-mono truncate">{doc.category?.name ?? '—'}</span>
+      <span className="text-[var(--text-muted)] text-xs font-mono">{formatDate(doc.created_at)}</span>
+      <span className="text-[var(--text-muted)] text-xs font-mono">{formatBytes(doc.file_size)}</span>
 
       {/* Action buttons */}
       <div className="relative z-20 flex gap-1 justify-end">
@@ -472,14 +472,14 @@ function ListDocumentRow({ doc }: { doc: Document }) {
           <>
             <button
               onClick={(e) => { e.preventDefault(); setRenaming(true) }}
-              className="p-1 text-[#5a5344] hover:text-[#c9a84c] transition-colors"
+              className="p-1 text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
               title="Rename"
             >
               <Pencil size={11} />
             </button>
             <button
               onClick={(e) => { e.preventDefault(); setDeleting(true) }}
-              className="p-1 text-[#5a5344] hover:text-[#c0392b] transition-colors"
+              className="p-1 text-[var(--text-muted)] hover:text-[var(--danger)] transition-colors"
               title="Delete"
             >
               <Trash2 size={11} />
@@ -493,10 +493,10 @@ function ListDocumentRow({ doc }: { doc: Document }) {
 
 function ListView({ documents }: { documents: Document[] }) {
   return (
-    <div className="border border-[#1e1c18] overflow-x-auto">
-      <div className="grid grid-cols-[1fr_140px_100px_80px_64px] px-4 py-2 border-b border-[#1e1c18] bg-[#0e0d0b]">
+    <div className="border border-[var(--border-strong)] overflow-x-auto">
+      <div className="grid grid-cols-[1fr_140px_100px_80px_64px] px-4 py-2 border-b border-[var(--border-strong)] bg-[var(--bg-base)]">
         {['Name', 'Category', 'Date', 'Size', ''].map((h, i) => (
-          <span key={i} className="text-[#3a3328] text-[9px] font-mono tracking-widest uppercase">
+          <span key={i} className="text-[var(--text-dim)] text-[9px] font-mono tracking-widest uppercase">
             {h}
           </span>
         ))}
@@ -524,7 +524,7 @@ function FolderView({
       {/* Subcategory folders */}
       {subcategories.length > 0 && (
         <div>
-          <p className="text-[#3a3328] text-[9px] font-mono tracking-widest uppercase mb-3">
+          <p className="text-[var(--text-dim)] text-[9px] font-mono tracking-widest uppercase mb-3">
             Folders
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
@@ -534,15 +534,15 @@ function FolderView({
                 <Link
                   key={cat.id}
                   href={`/library/${cat.id}`}
-                  className="group flex flex-col gap-2 p-4 bg-[#111009] border border-[#1e1c18] hover:border-[#c9a84c] transition-all duration-200"
+                  className="group flex flex-col gap-2 p-4 bg-[var(--bg-surface)] border border-[var(--border-strong)] hover:border-[var(--accent)] transition-all duration-200"
                 >
                   <FolderOpen
                     size={22}
-                    className="text-[#c9a84c] group-hover:text-[#e8d5a3] transition-colors"
+                    className="text-[var(--accent)] group-hover:text-[var(--text-primary)] transition-colors"
                   />
                   <div>
-                    <p className="text-[#e8d5a3] text-xs font-mono truncate">{cat.name}</p>
-                    <p className="text-[#3a3328] text-[10px] font-mono">
+                    <p className="text-[var(--text-primary)] text-xs font-mono truncate">{cat.name}</p>
+                    <p className="text-[var(--text-dim)] text-[10px] font-mono">
                       {count} file{count !== 1 ? 's' : ''}
                     </p>
                   </div>
@@ -556,7 +556,7 @@ function FolderView({
       {/* Files in current folder */}
       {documents.length > 0 && (
         <div>
-          <p className="text-[#3a3328] text-[9px] font-mono tracking-widest uppercase mb-3">
+          <p className="text-[var(--text-dim)] text-[9px] font-mono tracking-widest uppercase mb-3">
             Files
           </p>
           <GridView documents={documents} />
@@ -565,7 +565,7 @@ function FolderView({
 
       {uncategorized.length > 0 && subcategories.length > 0 && (
         <div>
-          <p className="text-[#3a3328] text-[9px] font-mono tracking-widest uppercase mb-3">
+          <p className="text-[var(--text-dim)] text-[9px] font-mono tracking-widest uppercase mb-3">
             Uncategorized
           </p>
           <GridView documents={uncategorized} />

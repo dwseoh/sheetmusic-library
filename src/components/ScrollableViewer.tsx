@@ -45,7 +45,7 @@ function LazyPage({ pageNumber, width }: { pageNumber: number; width: number }) 
         />
       ) : (
         <div
-          className="bg-[#1a1814] w-full"
+          className="bg-[var(--border-subtle)] w-full"
           style={{ height: placeholderHeight }}
         />
       )}
@@ -71,20 +71,20 @@ export default function ScrollableViewer({ url }: { url: string }) {
   }, [])
 
   return (
-    <div ref={containerRef} className="absolute inset-0 overflow-y-auto bg-[#111009]">
+    <div ref={containerRef} className="absolute inset-0 overflow-y-auto bg-[var(--bg-surface)]">
       <div className="py-6" style={{ paddingLeft: PADDING, paddingRight: PADDING }}>
         <Document
           file={url}
           onLoadSuccess={({ numPages }) => setNumPages(numPages)}
           loading={
             <div className="flex items-center justify-center py-20">
-              <span className="text-[#3a3328] text-xs font-mono animate-pulse">Loading PDF...</span>
+              <span className="text-[var(--text-dim)] text-xs font-mono animate-pulse">Loading PDF...</span>
             </div>
           }
           error={
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <FileText size={36} className="text-[#2a2520]" />
-              <span className="text-[#5a5344] text-sm font-mono">Could not load PDF</span>
+              <FileText size={36} className="text-[var(--border)]" />
+              <span className="text-[var(--text-muted)] text-sm font-mono">Could not load PDF</span>
             </div>
           }
         >

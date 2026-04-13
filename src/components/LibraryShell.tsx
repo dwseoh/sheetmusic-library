@@ -24,14 +24,14 @@ export default function LibraryShell({
 
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Mobile topbar */}
-        <div className="lg:hidden flex items-center gap-3 px-4 py-3 border-b border-[#1e1c18] bg-[#0e0d0b] shrink-0">
+        <div className="lg:hidden flex items-center gap-3 px-4 py-3 border-b border-[var(--border-strong)] bg-[var(--bg-base)] shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-[#8a7d6a] hover:text-[#e8d5a3] transition-colors"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
           >
             <Menu size={18} />
           </button>
-          <span className="font-serif text-[#e8d5a3] text-lg">Archive</span>
+          <span className="font-serif text-[var(--text-primary)] text-lg">Archive</span>
         </div>
 
         <div className="flex-1 min-w-0 min-h-0 overflow-hidden">{children}</div>

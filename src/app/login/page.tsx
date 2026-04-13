@@ -9,7 +9,7 @@ export default async function LoginPage({
   const hasError = params.error === 'invalid'
 
   return (
-    <main className="min-h-screen bg-[#0c0b09] flex items-center justify-center px-4">
+    <main className="min-h-screen bg-[var(--bg-deep)] flex items-center justify-center px-4">
       {/* Grain overlay */}
       <div
         className="fixed inset-0 pointer-events-none opacity-[0.03]"
@@ -23,10 +23,10 @@ export default async function LoginPage({
       <div className="w-full max-w-sm relative">
         {/* Logo / wordmark */}
         <div className="mb-12 text-center">
-          <h1 className="text-[#e8d5a3] font-serif text-4xl tracking-tight">
+          <h1 className="text-[var(--text-primary)] font-serif text-4xl tracking-tight">
             Archive
           </h1>
-          <p className="text-[#5a5344] text-sm mt-2 tracking-widest uppercase font-mono">
+          <p className="text-[var(--text-muted)] text-sm mt-2 tracking-widest uppercase font-mono">
             Document Library
           </p>
         </div>
@@ -35,7 +35,7 @@ export default async function LoginPage({
           <div>
             <label
               htmlFor="email"
-              className="block text-[#8a7d6a] text-xs tracking-widest uppercase font-mono mb-2"
+              className="block text-[var(--text-secondary)] text-xs tracking-widest uppercase font-mono mb-2"
             >
               Email
             </label>
@@ -45,7 +45,7 @@ export default async function LoginPage({
               type="email"
               required
               autoComplete="email"
-              className="w-full bg-[#161410] border border-[#2a2520] text-[#e8d5a3] rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-[#c9a84c] transition-colors placeholder-[#3a3328]"
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-dim)]"
               placeholder="you@example.com"
             />
           </div>
@@ -53,7 +53,7 @@ export default async function LoginPage({
           <div>
             <label
               htmlFor="password"
-              className="block text-[#8a7d6a] text-xs tracking-widest uppercase font-mono mb-2"
+              className="block text-[var(--text-secondary)] text-xs tracking-widest uppercase font-mono mb-2"
             >
               Password
             </label>
@@ -63,20 +63,20 @@ export default async function LoginPage({
               type="password"
               required
               autoComplete="current-password"
-              className="w-full bg-[#161410] border border-[#2a2520] text-[#e8d5a3] rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-[#c9a84c] transition-colors placeholder-[#3a3328]"
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-primary)] rounded-none px-4 py-3 text-sm font-mono focus:outline-none focus:border-[var(--accent)] transition-colors placeholder-[var(--text-dim)]"
               placeholder="••••••••"
             />
           </div>
 
           {hasError && (
-            <p className="text-[#c0392b] text-xs font-mono tracking-wide">
+            <p className="text-[var(--danger)] text-xs font-mono tracking-wide">
               Invalid email or password.
             </p>
           )}
 
           <button
             type="submit"
-            className="w-full mt-2 bg-[#c9a84c] hover:bg-[#e8d5a3] text-[#0c0b09] font-mono text-sm tracking-widest uppercase py-3 transition-colors duration-200"
+            className="w-full mt-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-[var(--accent-fg)] font-mono text-sm tracking-widest uppercase py-3 transition-colors duration-200"
           >
             Sign In
           </button>
@@ -84,9 +84,9 @@ export default async function LoginPage({
 
         {/* Decorative line */}
         <div className="mt-12 flex items-center gap-4">
-          <div className="flex-1 h-px bg-[#1e1c18]" />
-          <span className="text-[#3a3328] text-xs font-mono">restricted access</span>
-          <div className="flex-1 h-px bg-[#1e1c18]" />
+          <div className="flex-1 h-px bg-[var(--border-strong)]" />
+          <span className="text-[var(--text-dim)] text-xs font-mono">restricted access</span>
+          <div className="flex-1 h-px bg-[var(--border-strong)]" />
         </div>
       </div>
     </main>

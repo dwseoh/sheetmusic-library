@@ -19,4 +19,12 @@ export interface Document {
   created_at: string
   uploaded_by: string
   category?: Category
+  is_public: boolean
+  share_token: string | null
+}
+
+export interface Profile {
+  id: string
+  username: string
+  created_at: string
 }
