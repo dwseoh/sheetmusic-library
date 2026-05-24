@@ -48,21 +48,25 @@ create policy "Authenticated users can delete categories"
   on public.categories for delete
   using (auth.role() = 'authenticated');
 
-create policy "Users can read own or public documents"
+create policy "Public documents readable by anyone"
   on public.documents for select
-  using (uploaded_by = auth.uid() or is_public = true);
+  using (is_public = true);
 
-create policy "Authenticated users can insert documents"
+create policy "Users can read own documents"
+  on public.documents for select
+  using (uploaded_by = auth.uid());
+
+create policy "Users can insert own documents"
   on public.documents for insert
-  with check (auth.role() = 'authenticated');
+  with check (uploaded_by = auth.uid());
 
-create policy "Authenticated users can update documents"
+create policy "Users can update own documents"
   on public.documents for update
-  using (auth.role() = 'authenticated');
+  using (uploaded_by = auth.uid());
 
-create policy "Authenticated users can delete documents"
+create policy "Users can delete own documents"
   on public.documents for delete
-  using (auth.role() = 'authenticated');
+  using (uploaded_by = auth.uid());
 
 -- Storage bucket (run this in Supabase dashboard or via CLI)
 -- insert into storage.buckets (id, name, public) values ('documents', 'documents', false);
