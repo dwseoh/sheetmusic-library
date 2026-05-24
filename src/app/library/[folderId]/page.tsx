@@ -10,6 +10,9 @@ export default async function FolderPage({
 }) {
   const { folderId } = await params
   const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   const [{ data: categoryData }, { data: documents }, { data: categories }] =
     await Promise.all([
@@ -18,6 +21,7 @@ export default async function FolderPage({
         .from('documents')
         .select('*, category:categories(id, name)')
         .eq('category_id', folderId)
+        .eq('uploaded_by', user!.id)
         .order('created_at', { ascending: false }),
       supabase.from('categories').select('*').order('name'),
     ])

@@ -48,9 +48,9 @@ create policy "Authenticated users can delete categories"
   on public.categories for delete
   using (auth.role() = 'authenticated');
 
-create policy "Authenticated users can read documents"
+create policy "Users can read own or public documents"
   on public.documents for select
-  using (auth.role() = 'authenticated');
+  using (uploaded_by = auth.uid() or is_public = true);
 
 create policy "Authenticated users can insert documents"
   on public.documents for insert
