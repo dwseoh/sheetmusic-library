@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Maximize, Minimize } from 'lucide-react'
 import type { AnnotationData } from '@/types'
 import AnnotationOverlay from './AnnotationOverlay'
 
@@ -23,9 +23,27 @@ export default function PerformanceViewer({ url, onExit, annotations }: Performa
   const [currentPage, setCurrentPage] = useState(1)
   const [dims, setDims] = useState({ width: 0, height: 0 })
   const [pageBox, setPageBox] = useState({ width: 0, height: 0 })
+  const [immersive, setImmersive] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
   const displayRef = useRef<HTMLDivElement>(null)
   const pageWrapRef = useRef<HTMLDivElement>(null)
   const currentStrokes = annotations?.[currentPage] ?? []
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {})
+    } else {
+      rootRef.current?.requestFullscreen().catch(() => {})
+    }
+  }, [])
+
+  // Keep immersive state in sync with the browser's fullscreen status (covers
+  // the user pressing Escape or F11 to leave).
+  useEffect(() => {
+    const onChange = () => setImmersive(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
 
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
@@ -52,11 +70,14 @@ export default function PerformanceViewer({ url, onExit, annotations }: Performa
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goNext()
       if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goPrev()
-      if (e.key === 'Escape') onExit()
+      if (e.key === 'f' || e.key === 'F') toggleFullscreen()
+      // While fullscreen, Escape is handled by the browser to leave fullscreen;
+      // only exit performance mode when not fullscreen.
+      if (e.key === 'Escape' && !document.fullscreenElement) onExit()
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [goNext, goPrev, onExit])
+  }, [goNext, goPrev, onExit, toggleFullscreen])
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
@@ -80,31 +101,50 @@ export default function PerformanceViewer({ url, onExit, annotations }: Performa
 
   return (
     <div
+      ref={rootRef}
       className="fixed inset-0 bg-[var(--bg-deep)] z-50 flex flex-col select-none"
       style={{ touchAction: 'none' }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-strong)] shrink-0">
-        <div className="flex items-center gap-3">
-          <button onClick={goPrev} disabled={currentPage <= 1} className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:text-[var(--border)] transition-colors">
-            <ChevronLeft size={18} />
-          </button>
-          <span className="text-[var(--text-muted)] text-xs font-mono tabular-nums">{currentPage} / {numPages}</span>
-          <button onClick={goNext} disabled={currentPage >= numPages} className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:text-[var(--border)] transition-colors">
-            <ChevronRight size={18} />
-          </button>
+      {/* Top bar — hidden in immersive fullscreen so only the page shows */}
+      {!immersive && (
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-strong)] shrink-0">
+          <div className="flex items-center gap-3">
+            <button onClick={goPrev} disabled={currentPage <= 1} className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:text-[var(--border)] transition-colors">
+              <ChevronLeft size={18} />
+            </button>
+            <span className="text-[var(--text-muted)] text-xs font-mono tabular-nums">{currentPage} / {numPages}</span>
+            <button onClick={goNext} disabled={currentPage >= numPages} className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:text-[var(--border)] transition-colors">
+              <ChevronRight size={18} />
+            </button>
+          </div>
+
+          <span className="text-[var(--text-dim)] text-[10px] font-mono tracking-widest uppercase hidden sm:block">
+            Performance Mode
+          </span>
+
+          <div className="flex items-center gap-1">
+            <button onClick={toggleFullscreen} title="Fullscreen (F)" className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+              <Maximize size={15} />
+            </button>
+            <button onClick={onExit} title="Exit (Esc)" className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+              <X size={16} />
+            </button>
+          </div>
         </div>
+      )}
 
-        <span className="text-[var(--text-dim)] text-[10px] font-mono tracking-widest uppercase hidden sm:block">
-          Performance Mode
-        </span>
-
-        <button onClick={onExit} className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
-          <X size={16} />
+      {/* Minimal exit affordance while immersive */}
+      {immersive && (
+        <button
+          onClick={toggleFullscreen}
+          title="Exit fullscreen (Esc)"
+          className="absolute top-3 right-3 z-10 p-2 text-[var(--text-dim)] hover:text-[var(--text-primary)] opacity-40 hover:opacity-100 transition-opacity"
+        >
+          <Minimize size={16} />
         </button>
-      </div>
+      )}
 
       {/* Page display — ref here to measure actual available space */}
       <div ref={displayRef} className="flex-1 overflow-hidden flex items-center justify-center">
@@ -140,7 +180,7 @@ export default function PerformanceViewer({ url, onExit, annotations }: Performa
       </div>
 
       {/* Page dots */}
-      {numPages > 1 && numPages <= 20 && (
+      {!immersive && numPages > 1 && numPages <= 20 && (
         <div className="flex justify-center gap-1 py-3 shrink-0">
           {Array.from({ length: numPages }).map((_, i) => (
             <button

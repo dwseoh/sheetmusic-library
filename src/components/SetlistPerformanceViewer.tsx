@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Maximize, Minimize } from 'lucide-react'
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
 
@@ -29,7 +29,23 @@ export default function SetlistPerformanceViewer({
   const [pieceIndex, setPieceIndex] = useState(0)
   const [page, setPage] = useState(1)
   const [dims, setDims] = useState({ width: 0, height: 0 })
+  const [immersive, setImmersive] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
   const displayRef = useRef<HTMLDivElement>(null)
+
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {})
+    } else {
+      rootRef.current?.requestFullscreen().catch(() => {})
+    }
+  }, [])
+
+  useEffect(() => {
+    const onChange = () => setImmersive(!!document.fullscreenElement)
+    document.addEventListener('fullscreenchange', onChange)
+    return () => document.removeEventListener('fullscreenchange', onChange)
+  }, [])
 
   // When crossing backwards into a piece whose count isn't known yet, remember
   // that we want its last page and jump there once the count arrives.
@@ -101,11 +117,12 @@ export default function SetlistPerformanceViewer({
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goNext()
       if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goPrev()
-      if (e.key === 'Escape') onExit()
+      if (e.key === 'f' || e.key === 'F') toggleFullscreen()
+      if (e.key === 'Escape' && !document.fullscreenElement) onExit()
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [goNext, goPrev, onExit])
+  }, [goNext, goPrev, onExit, toggleFullscreen])
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX
@@ -138,39 +155,58 @@ export default function SetlistPerformanceViewer({
 
   return (
     <div
+      ref={rootRef}
       className="fixed inset-0 bg-[var(--bg-deep)] z-50 flex flex-col select-none"
       style={{ touchAction: 'none' }}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Top bar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-strong)] shrink-0 gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <button onClick={goPrev} disabled={isFirst} className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:text-[var(--border)] transition-colors shrink-0">
-            <ChevronLeft size={18} />
-          </button>
-          <span className="text-[var(--text-muted)] text-xs font-mono tabular-nums shrink-0">
-            {page} / {counts[pieceIndex] ?? '–'}
-          </span>
-          <button onClick={goNext} disabled={isLast} className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:text-[var(--border)] transition-colors shrink-0">
-            <ChevronRight size={18} />
-          </button>
-        </div>
+      {/* Top bar — hidden in immersive fullscreen so only the page shows */}
+      {!immersive && (
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border-strong)] shrink-0 gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <button onClick={goPrev} disabled={isFirst} className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:text-[var(--border)] transition-colors shrink-0">
+              <ChevronLeft size={18} />
+            </button>
+            <span className="text-[var(--text-muted)] text-xs font-mono tabular-nums shrink-0">
+              {page} / {counts[pieceIndex] ?? '–'}
+            </span>
+            <button onClick={goNext} disabled={isLast} className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:text-[var(--border)] transition-colors shrink-0">
+              <ChevronRight size={18} />
+            </button>
+          </div>
 
-        <div className="min-w-0 flex flex-col items-center text-center">
-          <span className="text-[var(--text-primary)] text-xs font-mono truncate max-w-[40vw]">
-            {pieces[pieceIndex]?.name}
-          </span>
-          <span className="text-[var(--text-dim)] text-[10px] font-mono">
-            Piece {pieceIndex + 1} / {pieces.length}
-            {totalPages !== null && globalPage !== null ? ` · ${globalPage}/${totalPages}` : ''}
-          </span>
-        </div>
+          <div className="min-w-0 flex flex-col items-center text-center">
+            <span className="text-[var(--text-primary)] text-xs font-mono truncate max-w-[40vw]">
+              {pieces[pieceIndex]?.name}
+            </span>
+            <span className="text-[var(--text-dim)] text-[10px] font-mono">
+              Piece {pieceIndex + 1} / {pieces.length}
+              {totalPages !== null && globalPage !== null ? ` · ${globalPage}/${totalPages}` : ''}
+            </span>
+          </div>
 
-        <button onClick={onExit} className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors shrink-0">
-          <X size={16} />
+          <div className="flex items-center gap-1 shrink-0">
+            <button onClick={toggleFullscreen} title="Fullscreen (F)" className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+              <Maximize size={15} />
+            </button>
+            <button onClick={onExit} title="Exit (Esc)" className="p-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
+              <X size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Minimal exit affordance while immersive */}
+      {immersive && (
+        <button
+          onClick={toggleFullscreen}
+          title="Exit fullscreen (Esc)"
+          className="absolute top-3 right-3 z-10 p-2 text-[var(--text-dim)] hover:text-[var(--text-primary)] opacity-40 hover:opacity-100 transition-opacity"
+        >
+          <Minimize size={16} />
         </button>
-      </div>
+      )}
 
       {/* Page display — all PDFs are mounted so counts resolve and turns flow
           across pieces; only the active piece renders a page. */}
