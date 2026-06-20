@@ -1,18 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
+import { getCurrentUser, getCategories } from '@/lib/supabase/queries'
 import LibraryShell from '@/components/LibraryShell'
 import UsernamePrompt from '@/components/UsernamePrompt'
-import type { Category, Profile } from '@/types'
+import type { Profile } from '@/types'
 
 export default async function LibraryLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-
-  const [{ data: categories }, { data: { user } }] = await Promise.all([
-    supabase.from('categories').select('*').order('name'),
-    supabase.auth.getUser(),
-  ])
+  const [categories, user] = await Promise.all([getCategories(), getCurrentUser()])
 
   let profile: Profile | null = null
   if (user) {
+    const supabase = await createClient()
     const { data } = await supabase
       .from('profiles')
       .select('*')
@@ -22,7 +19,7 @@ export default async function LibraryLayout({ children }: { children: React.Reac
   }
 
   return (
-    <LibraryShell categories={(categories as Category[]) ?? []}>
+    <LibraryShell categories={categories}>
       {!profile && <UsernamePrompt />}
       {children}
     </LibraryShell>
