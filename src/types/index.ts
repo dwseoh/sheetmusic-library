@@ -13,6 +13,7 @@ export interface Document {
   name: string
   file_path: string
   storage_url: string | null
+  thumbnail_url: string | null
   category_id: string | null
   tags: string[]
   file_size: number

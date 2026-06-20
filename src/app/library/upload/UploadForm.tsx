@@ -2,6 +2,7 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { uploadDocument } from './actions'
+import { generateThumbnailBlob } from '@/lib/pdfThumbnail'
 import type { Category } from '@/types'
 import { Upload, FileText, X, ChevronDown, Plus, FolderPlus } from 'lucide-react'
 
@@ -42,6 +43,16 @@ export default function UploadForm({ categories }: { categories: Category[] }) {
 
     startTransition(async () => {
       try {
+        // Render a page-1 thumbnail in the browser so the library grid never
+        // has to download this PDF just to show a preview.
+        try {
+          const buffer = await file.arrayBuffer()
+          const thumb = await generateThumbnailBlob(buffer)
+          if (thumb) formData.set('thumbnail', thumb, 'thumbnail.webp')
+        } catch {
+          // Non-fatal — upload proceeds without a cached thumbnail.
+        }
+
         await uploadDocument(formData)
       } catch (err) {
         // Next.js redirect() throws a special error — ignore it

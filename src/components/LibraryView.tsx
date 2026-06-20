@@ -357,8 +357,16 @@ function DocumentCard({ doc }: { doc: Document }) {
 
       {/* Thumbnail */}
       <div className="aspect-[3/4] bg-[var(--bg-elevated)] border border-[var(--border)] overflow-hidden">
-        {doc.storage_url ? (
-          <PdfThumbnail url={doc.storage_url} />
+        {doc.thumbnail_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={doc.thumbnail_url}
+            alt=""
+            loading="lazy"
+            className="w-full h-full object-cover object-top"
+          />
+        ) : doc.storage_url ? (
+          <PdfThumbnail url={doc.storage_url} documentId={doc.id} />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <FileText size={28} className="text-[var(--text-dim)]" />

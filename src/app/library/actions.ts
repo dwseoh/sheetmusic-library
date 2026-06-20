@@ -114,6 +114,51 @@ export async function toggleFavorite(id: string): Promise<{ is_favorite: boolean
   return { is_favorite: newValue }
 }
 
+// Backfill a thumbnail for an existing document. The WebP blob is rendered
+// client-side and passed through FormData.
+export async function saveThumbnail(formData: FormData): Promise<string | null> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const documentId = formData.get('documentId') as string
+  const thumbnail = formData.get('thumbnail')
+  if (!documentId || !(thumbnail instanceof File) || thumbnail.size === 0) {
+    return null
+  }
+
+  const { data: doc } = await supabase
+    .from('documents')
+    .select('file_path, thumbnail_url')
+    .eq('id', documentId)
+    .eq('uploaded_by', user.id)
+    .single()
+
+  if (!doc || doc.thumbnail_url) return doc?.thumbnail_url ?? null // already has one
+
+  const thumbPath = `thumbnails/${doc.file_path}.webp`
+  const { error: thumbError } = await supabase.storage
+    .from('documents')
+    .upload(thumbPath, thumbnail, { contentType: 'image/webp', upsert: true })
+  if (thumbError) return null
+
+  const { data: thumbUrlData } = await supabase.storage
+    .from('documents')
+    .createSignedUrl(thumbPath, 60 * 60 * 24 * 365 * 10)
+
+  const thumbnailUrl = thumbUrlData?.signedUrl ?? null
+  if (thumbnailUrl) {
+    await supabase
+      .from('documents')
+      .update({ thumbnail_url: thumbnailUrl })
+      .eq('id', documentId)
+      .eq('uploaded_by', user.id)
+  }
+  return thumbnailUrl
+}
+
 export async function saveAnnotations(documentId: string, data: AnnotationData) {
   const supabase = await createClient()
   const {

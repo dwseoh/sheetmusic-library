@@ -52,15 +52,33 @@ export async function uploadDocument(formData: FormData) {
   }
 
   // Get signed URL (valid 10 years — effectively permanent for private bucket)
+  const TEN_YEARS = 60 * 60 * 24 * 365 * 10
   const { data: urlData } = await supabase.storage
     .from('documents')
-    .createSignedUrl(filePath, 60 * 60 * 24 * 365 * 10)
+    .createSignedUrl(filePath, TEN_YEARS)
+
+  // Store the client-generated page-1 thumbnail, if one was provided.
+  let thumbnailUrl: string | null = null
+  const thumbnail = formData.get('thumbnail')
+  if (thumbnail instanceof File && thumbnail.size > 0) {
+    const thumbPath = `thumbnails/${filePath}.webp`
+    const { error: thumbError } = await supabase.storage
+      .from('documents')
+      .upload(thumbPath, thumbnail, { contentType: 'image/webp', upsert: true })
+    if (!thumbError) {
+      const { data: thumbUrlData } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(thumbPath, TEN_YEARS)
+      thumbnailUrl = thumbUrlData?.signedUrl ?? null
+    }
+  }
 
   // Insert document record
   const { error: insertError } = await supabase.from('documents').insert({
     name,
     file_path: filePath,
     storage_url: urlData?.signedUrl ?? null,
+    thumbnail_url: thumbnailUrl,
     category_id: resolvedCategoryId,
     tags,
     file_size: file.size,

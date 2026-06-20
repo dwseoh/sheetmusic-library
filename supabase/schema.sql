@@ -16,6 +16,7 @@ create table public.documents (
   name        text not null,
   file_path   text not null,           -- path inside Supabase Storage bucket
   storage_url text,                    -- public/signed URL (cached)
+  thumbnail_url text,                  -- signed URL to a cached page-1 WebP
   category_id uuid references public.categories(id) on delete set null,
   tags        text[] not null default '{}',
   file_size   bigint not null default 0,
