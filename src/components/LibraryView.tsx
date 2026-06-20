@@ -4,7 +4,7 @@ import { useState, useMemo, useTransition } from 'react'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import type { Document, Category } from '@/types'
-import { renameDocument, deleteDocument } from '@/app/library/actions'
+import { renameDocument, deleteDocument, toggleFavorite } from '@/app/library/actions'
 import {
   Search,
   LayoutGrid,
@@ -17,6 +17,7 @@ import {
   Pencil,
   Trash2,
   Check,
+  Star,
 } from 'lucide-react'
 
 const PdfThumbnail = dynamic(() => import('./PdfThumbnail'), { ssr: false })
@@ -27,6 +28,7 @@ interface LibraryViewProps {
   documents: Document[]
   categories: Category[]
   currentCategoryId?: string
+  favoritesOnly?: boolean
 }
 
 function formatBytes(bytes: number): string {
@@ -49,12 +51,14 @@ export default function LibraryView({
   documents,
   categories,
   currentCategoryId,
+  favoritesOnly = false,
 }: LibraryViewProps) {
   const [view, setView] = useState<ViewMode>('grid')
   const [search, setSearch] = useState('')
   const [filterCategory, setFilterCategory] = useState<string>(currentCategoryId ?? '')
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('date')
   const [filterOpen, setFilterOpen] = useState(false)
+  const [showFavorites, setShowFavorites] = useState(false)
 
   const filtered = useMemo(() => {
     let docs = [...documents]
@@ -72,6 +76,10 @@ export default function LibraryView({
       docs = docs.filter((d) => d.category_id === filterCategory)
     }
 
+    if (showFavorites) {
+      docs = docs.filter((d) => d.is_favorite)
+    }
+
     docs.sort((a, b) => {
       if (sortBy === 'name') return a.name.localeCompare(b.name)
       if (sortBy === 'size') return b.file_size - a.file_size
@@ -79,7 +87,7 @@ export default function LibraryView({
     })
 
     return docs
-  }, [documents, search, filterCategory, sortBy])
+  }, [documents, search, filterCategory, sortBy, showFavorites])
 
   const currentCategory = categories.find((c) => c.id === currentCategoryId)
   const subcategories = categories.filter(
@@ -93,7 +101,7 @@ export default function LibraryView({
       <div className="border-b border-[var(--border-strong)] px-4 sm:px-8 py-4 sm:py-5 flex flex-wrap items-center gap-3">
         <div className="flex-1">
           <h2 className="font-serif text-[var(--text-primary)] text-2xl">
-            {currentCategory ? currentCategory.name : 'All Documents'}
+            {favoritesOnly ? 'Favorites' : currentCategory ? currentCategory.name : 'All Documents'}
           </h2>
           <p className="text-[var(--text-muted)] text-xs font-mono mt-0.5">
             {filtered.length} document{filtered.length !== 1 ? 's' : ''}
@@ -119,6 +127,22 @@ export default function LibraryView({
             </button>
           )}
         </div>
+
+        {/* Favorites toggle */}
+        {!favoritesOnly && (
+          <button
+            onClick={() => setShowFavorites((v) => !v)}
+            className={`flex items-center gap-1.5 px-3 py-2 text-xs font-mono border transition-colors ${
+              showFavorites
+                ? 'border-[var(--accent)] text-[var(--accent)]'
+                : 'border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--text-dim)] hover:text-[var(--text-primary)]'
+            }`}
+            title="Show favorites only"
+          >
+            <Star size={12} className={showFavorites ? 'fill-[var(--accent)]' : ''} />
+            Favorites
+          </button>
+        )}
 
         {/* Filter toggle */}
         <button
@@ -235,6 +259,63 @@ export default function LibraryView({
   )
 }
 
+function FavoriteButton({
+  doc,
+  variant,
+}: {
+  doc: Document
+  variant: 'card' | 'row'
+}) {
+  const [, startTransition] = useTransition()
+  const [fav, setFav] = useState(doc.is_favorite)
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.preventDefault()
+    const next = !fav
+    setFav(next) // optimistic
+    startTransition(async () => {
+      try {
+        const result = await toggleFavorite(doc.id)
+        setFav(result.is_favorite)
+      } catch {
+        setFav(!next) // revert on failure
+      }
+    })
+  }
+
+  if (variant === 'card') {
+    return (
+      <button
+        onClick={handleToggle}
+        title={fav ? 'Remove from favorites' : 'Add to favorites'}
+        aria-pressed={fav}
+        className={`absolute top-2 left-2 z-20 p-1.5 bg-[var(--border-strong)] border transition-colors ${
+          fav
+            ? 'border-[var(--accent)] text-[var(--accent)] opacity-100'
+            : 'border-[var(--border)] text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 hover:text-[var(--accent)] hover:border-[var(--accent)]'
+        }`}
+      >
+        <Star size={10} className={fav ? 'fill-[var(--accent)]' : ''} />
+      </button>
+    )
+  }
+
+  return (
+    <button
+      onClick={handleToggle}
+      title={fav ? 'Remove from favorites' : 'Add to favorites'}
+      aria-pressed={fav}
+      className={`p-1 transition-colors ${
+        fav
+          ? 'text-[var(--accent)]'
+          : 'text-[var(--text-muted)] opacity-0 group-hover:opacity-100 hover:text-[var(--accent)]'
+      }`}
+    >
+      <Star size={11} className={fav ? 'fill-[var(--accent)]' : ''} />
+    </button>
+  )
+}
+
 function DocumentCard({ doc }: { doc: Document }) {
   const [isPending, startTransition] = useTransition()
   const [renaming, setRenaming] = useState(false)
@@ -270,6 +351,9 @@ function DocumentCard({ doc }: { doc: Document }) {
       {!renaming && !deleting && (
         <Link href={`/document/${doc.id}`} className="absolute inset-0 z-10" aria-label={doc.name} />
       )}
+
+      {/* Favorite toggle */}
+      {!renaming && !deleting && <FavoriteButton doc={doc} variant="card" />}
 
       {/* Thumbnail */}
       <div className="aspect-[3/4] bg-[var(--bg-elevated)] border border-[var(--border)] overflow-hidden">
@@ -467,9 +551,10 @@ function ListDocumentRow({ doc }: { doc: Document }) {
       <span className="text-[var(--text-muted)] text-xs font-mono">{formatBytes(doc.file_size)}</span>
 
       {/* Action buttons */}
-      <div className="relative z-20 flex gap-1 justify-end">
+      <div className="relative z-20 flex gap-1 justify-end items-center">
         {!renaming && !deleting && (
           <>
+            <FavoriteButton doc={doc} variant="row" />
             <button
               onClick={(e) => { e.preventDefault(); setRenaming(true) }}
               className="p-1 text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"

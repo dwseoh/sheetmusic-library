@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { randomBytes } from 'crypto'
+import type { AnnotationData } from '@/types'
 
 export async function renameDocument(id: string, newName: string) {
   const supabase = await createClient()
@@ -82,6 +83,65 @@ export async function togglePublic(
 
   revalidatePath(`/document/${id}`)
   return { is_public: newPublic, share_token: newToken }
+}
+
+export async function toggleFavorite(id: string): Promise<{ is_favorite: boolean }> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  const { data: doc } = await supabase
+    .from('documents')
+    .select('is_favorite')
+    .eq('id', id)
+    .eq('uploaded_by', user.id)
+    .single()
+
+  if (!doc) throw new Error('Document not found')
+
+  const newValue = !doc.is_favorite
+  const { error } = await supabase
+    .from('documents')
+    .update({ is_favorite: newValue })
+    .eq('id', id)
+    .eq('uploaded_by', user.id)
+
+  if (error) throw new Error('Failed to update favorite')
+
+  revalidatePath('/library', 'layout')
+  return { is_favorite: newValue }
+}
+
+export async function saveAnnotations(documentId: string, data: AnnotationData) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Unauthorized')
+
+  // Only the document owner may annotate.
+  const { data: doc } = await supabase
+    .from('documents')
+    .select('id')
+    .eq('id', documentId)
+    .eq('uploaded_by', user.id)
+    .single()
+
+  if (!doc) throw new Error('Document not found')
+
+  const { error } = await supabase.from('annotations').upsert(
+    {
+      document_id: documentId,
+      data,
+      created_by: user.id,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'document_id' }
+  )
+
+  if (error) throw new Error('Failed to save annotations')
 }
 
 export async function upsertProfile(username: string) {

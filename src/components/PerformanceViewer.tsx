@@ -5,6 +5,8 @@ import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import type { AnnotationData } from '@/types'
+import AnnotationOverlay from './AnnotationOverlay'
 
 pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
 
@@ -13,13 +15,17 @@ const PADDING = 16 // px each side
 interface PerformanceViewerProps {
   url: string
   onExit: () => void
+  annotations?: AnnotationData
 }
 
-export default function PerformanceViewer({ url, onExit }: PerformanceViewerProps) {
+export default function PerformanceViewer({ url, onExit, annotations }: PerformanceViewerProps) {
   const [numPages, setNumPages] = useState<number>(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [dims, setDims] = useState({ width: 0, height: 0 })
+  const [pageBox, setPageBox] = useState({ width: 0, height: 0 })
   const displayRef = useRef<HTMLDivElement>(null)
+  const pageWrapRef = useRef<HTMLDivElement>(null)
+  const currentStrokes = annotations?.[currentPage] ?? []
 
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
@@ -107,12 +113,29 @@ export default function PerformanceViewer({ url, onExit }: PerformanceViewerProp
           onLoadSuccess={({ numPages }) => setNumPages(numPages)}
           loading={<span className="text-[var(--text-dim)] text-xs font-mono animate-pulse">Loading...</span>}
         >
-          <Page
-            pageNumber={currentPage}
-            {...pageProps}
-            renderTextLayer={false}
-            renderAnnotationLayer={false}
-          />
+          <div ref={pageWrapRef} className="relative">
+            <Page
+              pageNumber={currentPage}
+              {...pageProps}
+              renderTextLayer={false}
+              renderAnnotationLayer={false}
+              onRenderSuccess={() => {
+                if (pageWrapRef.current) {
+                  setPageBox({
+                    width: pageWrapRef.current.clientWidth,
+                    height: pageWrapRef.current.clientHeight,
+                  })
+                }
+              }}
+            />
+            {pageBox.width > 0 && currentStrokes.length > 0 && (
+              <AnnotationOverlay
+                width={pageBox.width}
+                height={pageBox.height}
+                strokes={currentStrokes}
+              />
+            )}
+          </div>
         </Document>
       </div>
 

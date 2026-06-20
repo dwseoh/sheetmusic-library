@@ -4,8 +4,9 @@ import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import type { Document } from '@/types'
+import type { Document, AnnotationData } from '@/types'
 import { togglePublic } from '@/app/library/actions'
+import { addToSetlist, createSetlist } from '@/app/library/setlists/actions'
 import ThemeToggle from './ThemeToggle'
 const ScrollableViewer = dynamic(() => import('./ScrollableViewer'), { ssr: false })
 const PerformanceViewer = dynamic(() => import('./PerformanceViewer'), { ssr: false })
@@ -24,6 +25,8 @@ import {
   Lock,
   Copy,
   Check,
+  ListMusic,
+  Plus,
 } from 'lucide-react'
 
 function formatBytes(bytes: number): string {
@@ -45,9 +48,16 @@ function formatDate(iso: string): string {
 interface DocumentViewerProps {
   document: Document
   viewUrl: string | null
+  annotations?: AnnotationData
+  setlists?: { id: string; name: string }[]
 }
 
-export default function DocumentViewer({ document, viewUrl }: DocumentViewerProps) {
+export default function DocumentViewer({
+  document,
+  viewUrl,
+  annotations,
+  setlists = [],
+}: DocumentViewerProps) {
   const router = useRouter()
   const [performanceMode, setPerformanceMode] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -78,7 +88,11 @@ export default function DocumentViewer({ document, viewUrl }: DocumentViewerProp
   return (
     <>
       {performanceMode && viewUrl && (
-        <PerformanceViewer url={viewUrl} onExit={() => setPerformanceMode(false)} />
+        <PerformanceViewer
+          url={viewUrl}
+          annotations={annotations}
+          onExit={() => setPerformanceMode(false)}
+        />
       )}
 
       <div className="flex h-[100dvh]">
@@ -181,6 +195,9 @@ export default function DocumentViewer({ document, viewUrl }: DocumentViewerProp
                 </button>
               )}
             </div>
+
+            {/* Setlists */}
+            <AddToSetlist documentId={document.id} setlists={setlists} />
           </div>
 
           {/* Actions */}
@@ -232,7 +249,12 @@ export default function DocumentViewer({ document, viewUrl }: DocumentViewerProp
 
           <div className="flex-1 relative min-h-0">
             {viewUrl ? (
-              <ScrollableViewer url={viewUrl} />
+              <ScrollableViewer
+                url={viewUrl}
+                documentId={document.id}
+                initialAnnotations={annotations}
+                canAnnotate
+              />
             ) : (
               <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
                 <FileText size={40} className="text-[var(--border)]" />
@@ -243,6 +265,108 @@ export default function DocumentViewer({ document, viewUrl }: DocumentViewerProp
         </div>
       </div>
     </>
+  )
+}
+
+function AddToSetlist({
+  documentId,
+  setlists,
+}: {
+  documentId: string
+  setlists: { id: string; name: string }[]
+}) {
+  const [lists, setLists] = useState(setlists)
+  const [open, setOpen] = useState(false)
+  const [added, setAdded] = useState<string | null>(null)
+  const [creating, setCreating] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [isPending, startTransition] = useTransition()
+
+  const handleAdd = (setlistId: string) => {
+    startTransition(async () => {
+      await addToSetlist(setlistId, documentId)
+      setAdded(setlistId)
+      setTimeout(() => setAdded(null), 1500)
+    })
+  }
+
+  const handleCreate = () => {
+    const name = newName.trim()
+    if (!name) {
+      setCreating(false)
+      return
+    }
+    startTransition(async () => {
+      const id = await createSetlist(name)
+      await addToSetlist(id, documentId)
+      setLists((prev) => [{ id, name }, ...prev])
+      setNewName('')
+      setCreating(false)
+      setAdded(id)
+      setTimeout(() => setAdded(null), 1500)
+    })
+  }
+
+  return (
+    <div className="pt-4 mt-4 border-t border-[var(--border-strong)]">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between text-[9px] font-mono tracking-widest uppercase text-[var(--text-dim)] mb-3 hover:text-[var(--text-secondary)] transition-colors"
+      >
+        <span className="flex items-center gap-1.5">
+          <ListMusic size={11} />
+          Setlists
+        </span>
+        <Plus size={12} className={`transition-transform ${open ? 'rotate-45' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="space-y-1">
+          {lists.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => handleAdd(s.id)}
+              disabled={isPending}
+              className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--text-muted)] hover:text-[var(--text-primary)] text-xs font-mono transition-colors disabled:opacity-50"
+            >
+              <span className="truncate">{s.name}</span>
+              {added === s.id ? (
+                <Check size={12} className="text-[var(--accent)] shrink-0" />
+              ) : (
+                <Plus size={12} className="shrink-0" />
+              )}
+            </button>
+          ))}
+
+          {creating ? (
+            <div className="flex gap-1 items-center">
+              <input
+                autoFocus
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCreate()
+                  if (e.key === 'Escape') { setCreating(false); setNewName('') }
+                }}
+                placeholder="New setlist..."
+                className="flex-1 min-w-0 bg-[var(--bg-elevated)] border border-[var(--accent)] text-[var(--text-primary)] text-xs font-mono px-2 py-1 focus:outline-none"
+              />
+              <button onClick={handleCreate} disabled={isPending} className="text-[var(--accent)] hover:text-[var(--text-primary)] shrink-0">
+                <Check size={13} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setCreating(true)}
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[var(--text-muted)] hover:text-[var(--accent)] text-xs font-mono transition-colors"
+            >
+              <Plus size={12} />
+              New setlist
+            </button>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 

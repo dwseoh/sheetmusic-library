@@ -13,6 +13,8 @@ import {
   ChevronRight,
   X,
   Settings,
+  Star,
+  ListMusic,
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -63,6 +65,8 @@ export default function Sidebar({ categories, open, onClose }: SidebarProps) {
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5">
           <NavItem href="/library" icon={<Library size={13} />} label="All Documents" active={isActive('/library')} onClick={onClose} />
+          <NavItem href="/library/favorites" icon={<Star size={13} />} label="Favorites" active={isActive('/library/favorites')} onClick={onClose} />
+          <NavItem href="/library/setlists" icon={<ListMusic size={13} />} label="Setlists" active={pathname.startsWith('/library/setlists')} onClick={onClose} />
           <NavItem href="/library/upload" icon={<Upload size={13} />} label="Upload" active={isActive('/library/upload')} onClick={onClose} />
           <NavItem href="/library/settings" icon={<Settings size={13} />} label="Settings" active={isActive('/library/settings')} onClick={onClose} />
 

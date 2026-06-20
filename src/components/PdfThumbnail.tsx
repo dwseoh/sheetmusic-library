@@ -10,6 +10,7 @@ export default function PdfThumbnail({ url }: { url: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
   const [failed, setFailed] = useState(false)
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     if (containerRef.current) {
@@ -17,9 +18,27 @@ export default function PdfThumbnail({ url }: { url: string }) {
     }
   }, [])
 
+  // Only download + render the PDF once the card scrolls near the viewport, so
+  // the library grid doesn't fetch every PDF up front.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '300px' }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
   return (
     <div ref={containerRef} className="w-full h-full overflow-hidden flex items-start justify-center">
-      {width > 0 && !failed ? (
+      {visible && width > 0 && !failed ? (
         <Document
           file={url}
           onLoadError={() => setFailed(true)}
